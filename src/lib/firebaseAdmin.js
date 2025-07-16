@@ -1,11 +1,21 @@
 // backend/src/lib/firebaseAdmin.js
 import admin from "firebase-admin";
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG);
+if (!process.env.FIREBASE_CONFIG) {
+  throw new Error("❌ FIREBASE_CONFIG env variable is not set.");
+}
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+const raw = JSON.parse(process.env.FIREBASE_CONFIG);
+
+// 🔥 Replace \\n with real line breaks
+raw.private_key = raw.private_key.replace(/\\n/g, '\n');
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(raw),
+  });
+}
+
 
 export const sendPushNotification = async (fcmToken, title, body) => {
   try {
